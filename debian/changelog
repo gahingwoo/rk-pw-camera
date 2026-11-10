@@ -1,3 +1,9 @@
+rk-pw-camera (0.1.2) unstable; urgency=medium
+
+  * Build packages for Ubuntu resolute (26.04) as well.
+
+ -- Jiaxing Hu <gahing@gahingwoo.com>  Tue, 10 Nov 2026 21:29:20 +1300
+
 rk-pw-camera (0.1.1) unstable; urgency=medium
 
   * Offer one fixed format (NV12 1280x720): a choice of formats made GNOME

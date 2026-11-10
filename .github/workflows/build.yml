@@ -20,6 +20,8 @@ jobs:
             suite: trixie
           - image: ubuntu:noble
             suite: noble
+          - image: ubuntu:resolute
+            suite: resolute
     container: ${{ matrix.image }}
     steps:
       - uses: actions/checkout@v4
