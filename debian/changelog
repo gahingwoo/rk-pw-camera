@@ -1,3 +1,10 @@
+rk-pw-camera (0.1.1) unstable; urgency=medium
+
+  * Offer one fixed format (NV12 1280x720): a choice of formats made GNOME
+    Snapshot renegotiate on connect and crash in the GL upload.
+
+ -- Jiaxing Hu <gahing@gahingwoo.com>  Tue, 10 Nov 2026 18:15:57 +1300
+
 rk-pw-camera (0.1.0) unstable; urgency=medium
 
   * Initial release.

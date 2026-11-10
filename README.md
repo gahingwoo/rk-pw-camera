@@ -24,8 +24,9 @@ picture.
 - A WirePlumber rule hides the internal `rkcif`, `rkisp` and `rkvpss` V4L2
   nodes.
 
-It offers NV12 (one copy per frame) and BGRx (converted with libyuv), at
-1280x720 and 1920x1080, 30 fps.
+It offers NV12 at 1280x720, 30 fps, one copy per frame. Offering more
+formats made GNOME Snapshot renegotiate on connect and crash in GStreamer's GL
+upload (2 of 8 launches), so the format is fixed.
 
 Picture quality (exposure, white balance, colour) comes from the Rockchip
 3A server, `rkaiq_3A_server`, which has to run alongside this. On RK3576

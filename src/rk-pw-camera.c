@@ -15,9 +15,9 @@
  * it all frames reach the client with the same PTS, and a clock-synced sink
  * (GTK's paintable sink in GNOME Snapshot) never shows any of them.
  *
- * NV12 is offered first (one memcpy, the GPU converts). BGRx is a fallback
- * for clients that cannot take YUV; the ISP emits full-range BT.601, which
- * libyuv converts on the CPU.
+ * Only NV12 1280x720 is offered (one memcpy per frame, the GPU converts);
+ * see the format comment in main() for why. The BGRx path (full-range
+ * BT.601 via libyuv) is kept for when more formats can be offered safely.
  */
 #include <errno.h>
 #include <fcntl.h>
@@ -416,15 +416,16 @@ int main(int argc, char **argv)
 		SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat,
 		SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video),
 		SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
-		SPA_FORMAT_VIDEO_format, SPA_POD_CHOICE_ENUM_Id(3,
-			SPA_VIDEO_FORMAT_NV12,
-			SPA_VIDEO_FORMAT_NV12,
-			SPA_VIDEO_FORMAT_BGRx),
-		/* 720p first: at 1080p GNOME Snapshot alone needs a whole core. */
-		SPA_FORMAT_VIDEO_size, SPA_POD_CHOICE_ENUM_Rectangle(3,
-			&SPA_RECTANGLE(1280, 720),
-			&SPA_RECTANGLE(1280, 720),
-			&SPA_RECTANGLE(1920, 1080)),
+		/*
+		 * One fixed format. With a choice of formats or sizes, GNOME
+		 * Snapshot renegotiates right after it connects; PipeWire then
+		 * swaps the buffers while GStreamer's GL upload thread may still
+		 * be reading the old ones, and Snapshot segfaults (2 of 8
+		 * launches; 0 of 8 with a single format). 720p also keeps
+		 * Snapshot at half a core instead of a whole one.
+		 */
+		SPA_FORMAT_VIDEO_format, SPA_POD_Id(SPA_VIDEO_FORMAT_NV12),
+		SPA_FORMAT_VIDEO_size, SPA_POD_Rectangle(&SPA_RECTANGLE(1280, 720)),
 		SPA_FORMAT_VIDEO_framerate, SPA_POD_Fraction(&SPA_FRACTION(30, 1)));
 
 	ret = pw_stream_connect(c.stream, PW_DIRECTION_OUTPUT, PW_ID_ANY,
