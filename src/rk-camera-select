@@ -1,0 +1,34 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+#
+# Find the Rockchip ISP output that has a camera sensor behind it and write
+# its video node to /run/rk-camera/device for rk-pw-camera.
+#
+# The vendor camera stack registers one virtual ISP per CSI port. Only the
+# ISP main path of a virtual ISP whose CIF input has a probed sensor gives
+# pictures. Each rkisp media graph links its input from an rkcif instance;
+# that rkcif instance's own media graph contains the sensor entity.
+set -e
+
+RUN=/run/rk-camera
+keep=""
+
+for m in /dev/media*; do
+	[ -e "$m" ] || continue
+	t=$(media-ctl -d "$m" -p 2>/dev/null) || continue
+	echo "$t" | grep -q '^driver *rkisp' || continue
+	cif=$(echo "$t" | sed -n 's/.*<- "\(rkcif-[^"]*\)":0 \[ENABLED\].*/\1/p' | head -n1)
+	[ -n "$cif" ] || continue
+	for c in /dev/media*; do
+		ct=$(media-ctl -d "$c" -p 2>/dev/null) || continue
+		echo "$ct" | grep -q "^model *$cif\$" || continue
+		echo "$ct" | grep -q 'subtype Sensor' || continue
+		node=$(echo "$t" | awk '/: rkisp_mainpath /{f=1} f && /device node name/{print $4; exit}')
+		[ -n "$node" ] && keep="$keep $node"
+	done
+done
+
+mkdir -p "$RUN"
+set -- $keep
+echo "${1:-}" > "$RUN/device"
+echo "rk-camera-select: camera node:${1:- none}"

@@ -1,0 +1,60 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  deb:
+    runs-on: ubuntu-24.04-arm
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: debian:trixie
+            suite: trixie
+          - image: ubuntu:noble
+            suite: noble
+    container: ${{ matrix.image }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            build-essential devscripts debhelper pkgconf libpipewire-0.3-dev libyuv-dev
+      - name: Build package
+        run: |
+          dpkg-buildpackage -us -uc -b
+          ver=$(dpkg-parsechangelog -S Version)
+          mkdir -p out
+          # Stable name: Armbian's external package sync downloads
+          # releases/latest/download/rk-pw-camera_<suite>_arm64.deb
+          cp ../rk-pw-camera_${ver}_arm64.deb out/rk-pw-camera_${{ matrix.suite }}_arm64.deb
+          dpkg-deb -I out/*.deb
+          dpkg-deb -c out/*.deb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rk-pw-camera-${{ matrix.suite }}
+          path: out/*.deb
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: deb
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" dist/*.deb \
+            --repo "${GITHUB_REPOSITORY}" --title "${GITHUB_REF_NAME}" --generate-notes

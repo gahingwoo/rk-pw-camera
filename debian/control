@@ -1,0 +1,22 @@
+Source: rk-pw-camera
+Section: video
+Priority: optional
+Maintainer: Jiaxing Hu <gahing@gahingwoo.com>
+Build-Depends: debhelper-compat (= 13), pkgconf, libpipewire-0.3-dev, libyuv-dev
+Standards-Version: 4.7.0
+Homepage: https://github.com/gahingwoo/rk-pw-camera
+Rules-Requires-Root: no
+
+Package: rk-pw-camera
+Architecture: arm64
+Depends: ${shlibs:Depends}, ${misc:Depends}, pipewire, wireplumber, v4l-utils
+Recommends: camera-engine-rkaiq-rk3576 | camera-engine-rkaiq
+Description: PipeWire camera for Rockchip vendor-kernel ISPs
+ The Rockchip vendor kernel's ISP (rkisp) only offers the V4L2
+ multi-planar capture API, which PipeWire's V4L2 monitor cannot use, so
+ desktop camera apps such as GNOME Snapshot and browsers see no camera.
+ .
+ rk-pw-camera publishes the ISP main path that has a sensor behind it
+ as a PipeWire camera, streaming only while an application uses it, and
+ hides the ~50 internal rkcif/rkisp/rkvpss nodes from WirePlumber.
+ Image quality needs the Rockchip 3A server (camera-engine-rkaiq).

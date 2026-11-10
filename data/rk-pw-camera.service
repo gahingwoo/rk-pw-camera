@@ -1,0 +1,13 @@
+[Unit]
+Description=Rockchip ISP camera for PipeWire (streams on demand)
+After=pipewire.service
+BindsTo=pipewire.service
+ConditionPathExists=/run/rk-camera/device
+
+[Service]
+ExecStart=/usr/bin/rk-pw-camera
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=pipewire.service

@@ -1,0 +1,13 @@
+[Unit]
+Description=Find the Rockchip ISP output that has a camera
+After=systemd-udev-settle.service systemd-modules-load.service
+Wants=systemd-udev-settle.service
+ConditionPathExistsGlob=/sys/bus/platform/drivers/rkisp/*-vir*
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/libexec/rk-camera-select
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,7 @@
+rk-pw-camera
+*.o
+debian/rk-pw-camera/
+debian/.debhelper/
+debian/files
+debian/*.substvars
+debian/debhelper-build-stamp
